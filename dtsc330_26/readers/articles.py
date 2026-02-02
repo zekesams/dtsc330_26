@@ -12,7 +12,7 @@ class Articles():
         """
         self.article_df = None
         self.author_df = None
-        self._parse(path)  # I'm being inconsistent-- don't be
+        self._parse(path) 
 
     def _parse(self, path: str):
         """Parse the Pubmed file"""
@@ -57,6 +57,29 @@ class Articles():
                 # remember that a tag is combination of a start and end
                 # <el.tag></el.tag>
 
+            if el.tag == 'PubDate':
+                for x in el:
+                    if x.tag == 'Year':
+                        year = x.text
+                    elif x.tag == 'Month':
+                        month = x.text
+                    elif x.tag == 'Day':
+                        day = x.text
+
+                row['PubDate'] = f'{year}-{month}-{day}'
+
+            if el.tag == 'DateCompleted':
+                for y in el:
+                    if y.tag == 'Year':
+                        year = y.text
+                    elif y.tag == 'Month':
+                        month = y.text
+                    elif y.tag == 'Day':
+                        day = y.text
+
+                row['DateCompleted'] = f'{year}-{month}-{day}'
+            
+
         if 'PMID' not in row.keys():
             return {}, {}
         
@@ -81,6 +104,10 @@ class Articles():
     def get_entries(self):
         """Get parsed articles"""
         return self.article_df
+    
+
+if __name__ == '__main__':
+    articles = Articles('data/pubmed25n1275.xml.gz')
     
 
 if __name__ == '__main__':
