@@ -109,3 +109,4 @@ class Articles():
 if __name__ == '__main__':
     articles = Articles('data/pubmed25n1275.xml.gz')
 
+    

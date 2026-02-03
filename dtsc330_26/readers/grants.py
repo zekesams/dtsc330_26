@@ -46,7 +46,7 @@ class Grants():  # class names in python are camel case (e.g. GrantReader)
         df = df.explode('grantee')
         df['grantee'] = df['grantee'].str.strip()
 
-    
+
         return df
     
     def get(self):
