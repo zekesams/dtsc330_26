@@ -6,3 +6,9 @@ Question 1: For the missing 'start_at' dates in the grants data, I would replace
 Question 2: To get "grantees", split each name up at the semicolon in PINAMEs using str.split(';') and have each grantee name in its own row. Use the .explode pandas command to do so.
 
 Question 3: PubDate and DateCompleted in the Articles dataset are organized as tags within a tag. To parse the inner tags containing the year, month, day, hour, and minute values, there need to be nested for loops in the parse_article function. 
+
+## Homework 3:
+Performance using logistic_regression: 0.8997867803837953
+Performance using random_forest: 0.9991471215351813
+
+The features I chose were heartrate, the absolute value of acc_x, acc_y, and acc_z, mean heartrate over a roughly 8 hour window, and the mean of each acceleration direction's absolute value over the same window. I chose these features because they provided a baseline average for each person in the experiment. I chose to take the absolute value of each acceleration datapoint because I thought it would improve performance.

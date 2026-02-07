@@ -3,9 +3,9 @@ import pandas as pd
 """
 Features: 
 - heartrate
-- acc_x, acc_y, acc_z
+- absolute value of acc_x, acc_y, acc_z
 - mean heartrate by test subject (8 hour window containing awake and sleep heartrates)
-- take absolute value, then mean acceleration over the same window
+- mean of absolute value of acceleration over the same window
 
 Label:
 - is_sleep (True or False)
