@@ -4,6 +4,7 @@ functions share the same data, which suggests we should use:
 """
 import numpy as np
 import sklearn
+import xgboost
 
 # NOTE: We can use a custom classifier, but most classiifers are 
 # implemented well.
@@ -34,6 +35,8 @@ class ReusableClassifier:
             self.model = sklearn.linear_model.LogisticRegression()
         if self.model_type == 'random_forest':
             self.model = sklearn.ensemble.RandomForestClassifier()
+        if self.model_type == 'xgboost':
+            self.model = xgboost.XGBClassifier()
 
         # We NEED to scale the data for regression
         # we can use a StandardScaler to make it normal

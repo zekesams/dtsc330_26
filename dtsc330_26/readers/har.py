@@ -6,7 +6,7 @@ import pandas as pd
 
 
 class HAR():
-    def __init__(self, path: str, n_people: int=2):
+    def __init__(self, path: str, n_people: int):
         """Take in a path, read in the data files
 
         Args:
