@@ -15,3 +15,6 @@ The features I chose were heartrate, the absolute value of acc_x, acc_y, and acc
 ## Homework 4:
 Performance using XGBoost: 0.8934286687095676
 Difference: roughly 3.1%
+
+## Homework 5:
+To limit the phonebook-to-phonebook matching problem, I would only compare entries where at least one variable (out of first name, last name, phone number, or address) matches, instead of doing an all-to-all comparison. It would probably be even more effective to only compare entries with a phone number match or last name match, as too many people change their address and have multiple ways to spell their first name. There still could be last name and phone number typos, but these errors are probably rare enough for it not to matter too much.
