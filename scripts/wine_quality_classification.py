@@ -2,30 +2,31 @@ import pandas as pd
 import zipfile
 
 # BOTH of these will work, but they affect the downstream
-#import dtsc330_26.reusable_classifier
-#dtsc330_26.reusable_classifier.ReusableClassifier()
+# import dtsc330_26.reusable_classifier
+# dtsc330_26.reusable_classifier.ReusableClassifier()
 
-from dtsc330_26 import classifier
-classifier.ReusableClassifier()
+from dtsc330_26 import reusable_classifier
+reusable_classifier.ReusableClassifier()
 
-#from dtsc330_26.reusable_classifier import ReusableClassifier
+# from dtsc330_26.reusable_classifier import ReusableClassifier
 # NO
-#from dtsc330_26.reusable_classifier import *
-# You're fired.
+# from dtsc330_26.reusable_classifier import *
+# You're fired
 
 # In a script, no name = main if you don't want
-# It can be ugly
+# it can be ugly
 # don't add good notes
 # you're good
 
 # you will regret when you don't add good notes
 
-zf = zipfile.ZipFile('data/wine_quality.zip')
-df = pd.read_csv(zf.open('WineQT.csv'), sep=';')
+zf = zipfile.ZipFile('data/wine+quality.zip')
+df = pd.read_csv(zf.open('winequality-white.csv'), sep=';')
 print(df)
 
 # train test split
+labels = df['quality'] > 5
+features = df.drop(columns=['quality'])
 
-
-rc = classifier.ReusableClassifier()
-rc.train()
+rc = reusable_classifier.ReusableClassifier()
+print(rc.assess(features, labels))

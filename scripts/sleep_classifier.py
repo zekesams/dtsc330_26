@@ -57,7 +57,7 @@ for person in people:
         features.append(fs)
         labels.append(ls)
 
-rc = reusable_classifier.ReusableClassifier("xgboost")
+rc = reusable_classifier.ReusableClassifier("random_forest")
 rc.train(pd.concat(features), pd.concat(labels))
 
 pred_labels = rc.predict(pd.concat(test_features))
