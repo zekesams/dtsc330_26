@@ -1,6 +1,7 @@
 import gzip
 import pandas as pd
 import xml.etree.ElementTree as ET
+import sqlalchemy
 
 
 class Articles():
@@ -40,7 +41,16 @@ class Articles():
     def _parse_article(self, article: ET.Element):
         """Parse an XML PubmedArticle element"""
         row = {}
-        tags = ['PMID', 'ArticleTitle', 'PubDate', 'DateCompleted', 'Affiliation']
+        tags = [
+            'PMID',
+            'ArticleTitle',
+            'PubDate',
+            'DateCompleted',
+            'Affiliation',
+            'Year',
+            'Month',
+            'Day'
+        ]
         # <PubDate>
         #   <Year>2001</Year>
         #   <Month>2</Month>
@@ -50,6 +60,10 @@ class Articles():
         # </PubDate>
         for el in article.iter():
             if el.tag in tags:
+                if el.tag.find("Date") > -1:
+                    for el2 in el.iter():
+                        if el2.tag in tags:
+                            row[el2.tag] = el2.text
                 row[el.tag] = el.text
                 # <LastName>Bettcher</LastName>
                 # el.text pulls out what's INSIDE the pair of tags
@@ -57,29 +71,30 @@ class Articles():
                 # remember that a tag is combination of a start and end
                 # <el.tag></el.tag>
 
-            if el.tag == 'PubDate':
-                for x in el:
-                    if x.tag == 'Year':
-                        year = x.text
-                    elif x.tag == 'Month':
-                        month = x.text
-                    elif x.tag == 'Day':
-                        day = x.text
+            ### My old HW and other code to reference later
+            # HW:
+            # if el.tag == 'PubDate':
+                # for x in el:
+                  #  if x.tag == 'Year':
+                    #    year = x.text
+                   # elif x.tag == 'Month':
+                    #    month = x.text
+                   # elif x.tag == 'Day':
+                     #   day = x.text
 
-                row['PubDate'] = f'{year}-{month}-{day}'
+                # row['PubDate'] = f'{year}-{month}-{day}'
 
-            if el.tag == 'DateCompleted':
-                for y in el:
-                    if y.tag == 'Year':
-                        year = y.text
-                    elif y.tag == 'Month':
-                        month = y.text
-                    elif y.tag == 'Day':
-                        day = y.text
+            # if el.tag == 'DateCompleted':
+                #for y in el:
+                   # if y.tag == 'Year':
+                    #    year = y.text
+                    #elif y.tag == 'Month':
+                     #   month = y.text
+                    #elif y.tag == 'Day':
+                     #   day = y.text
 
-                row['DateCompleted'] = f'{year}-{month}-{day}'
+                # row['DateCompleted'] = f'{year}-{month}-{day}'
             
-
         if 'PMID' not in row.keys():
             return {}, {}
         
@@ -92,25 +107,46 @@ class Articles():
             auth_row = {'PMID': row['PMID']}
             for el in author.iter():
                 if el.tag in tags:
-                    auth_row[el.tag] = el.text
+                    auth_row[el.tag] = el.text.lower().strip()
             authors.append(auth_row)
         
         return row, authors
+
+    def to_db(self,path:str='data/article_grant_db.sqlite'):
+        """Send the read-in data to the database"""
+        #Define the connection
+        engine = sqlalchemy.create_engine('sqlite:///data/article_grant_db.sqlite')
+        connection = engine.connect()
+
+        self.df[['PMID',
+                'PubDate',
+                'DateCompleted']].to_sql('articles', 
+                                    connection,
+                                    if_exists='append',
+                                    index=False)
+
+    def _from_db(self):
+        """Load the data from the database"""
+        engine = sqlalchemy.create_engine("sqlite:///data/article_grant_db.sqlite")
+        connection = engine.connect()
+        df = pd.read_sql("SELECT * FROM articles", connection)
+        return df
     
     def get_authors(self):
-        """Get parsed grants"""
-        return self.author_df     
+        """Get parsed grantees"""
+        return self.author_df.rename(
+            columns={
+                'LastName':'surname',
+                'ForeName':'forename',
+                'Initials':'initials',
+                'Affiliation':'affiliation'
+            }
+        )    
     
     def get_entries(self):
         """Get parsed articles"""
         return self.article_df
+        
     
-
 if __name__ == '__main__':
     articles = Articles('data/pubmed25n1275.xml.gz')
-    
-
-if __name__ == '__main__':
-    articles = Articles('data/pubmed25n1275.xml.gz')
-
-    

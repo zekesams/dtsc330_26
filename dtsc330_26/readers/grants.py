@@ -1,6 +1,7 @@
 # CamelCase
 # snake_case -- this is what python programmers use
 import pandas as pd
+import sqlalchemy
 
 
 class Grants():  # class names in python are camel case (e.g. GrantReader)
@@ -13,8 +14,10 @@ class Grants():  # class names in python are camel case (e.g. GrantReader)
         # What is self?
         # "Self is the specific instance of the object" - Computer Scientist 
         # Store shared variables in self
+        if path is None:
+            self.df, self.grantee_df = self._from_db()
         self.path = path
-        self.df = self._parse(path)
+        self.df, self.grantee_df = self._parse(path)
 
     def _parse(self, path: str):
         """Parse a grants file"""
@@ -35,26 +38,108 @@ class Grants():  # class names in python are camel case (e.g. GrantReader)
         # maybe combine for budget duration?
         df = df.rename(columns=mapper)[mapper.values()]
 
+        ### HOMEWORK ANSWERS AND SOME MORE OF MY CODE / PREVIOUS CODE TO REFERENCE LATER
         # HW2 Question 1
         # This takes every missing date in the 'start_at' column and fills with the date in the row above
-        for i in range(1, len(df)):
-            if pd.isna(df.loc[i, 'start_at']):
-                df.loc[i, 'start_at'] = df.loc[i-1, 'start_at']
+        #for i in range(1, len(df)):
+        #   if pd.isna(df.loc[i, 'start_at']):
+        #        df.loc[i, 'start_at'] = df.loc[i-1, 'start_at']
 
         # HW2 Question 2
-        df['grantee'] = df['pi_names'].str.split(';')
-        df = df.explode('grantee')
-        df['grantee'] = df['grantee'].str.strip()
+        #df['grantee'] = df['pi_names'].str.split(';')
+        #df = df.explode('grantee')
+        #df['grantee'] = df['grantee'].str.strip()
 
+        # grantees = df[['application_id', 'pi_names',]].dropna(how='any')
+        # grantees['pi_name'] = grantees['pi_names'].str.split(';')
+        # grantees = grantees.explode('pi_name').reset_index(drop=True)
+        # grantees['pi_name'] = grantees['pi_name'].str.strip()
 
+        # ADDED LATER (Dr. Sugden's code for the most part)
+        df["affiliation"] = df.apply(
+            lambda row: ", ".join(
+                [
+                    v
+                    for v in [
+                        row["organization"],
+                        row["city"],
+                        row["state"],
+                        row["country"],
+                    ]
+                    if not pd.isna(v)
+                ]
+            ),
+            axis=1,
+        ).str.lower()
+
+        grantees = df[["application_id", "pi_names", "affiliation"]].dropna(how="any")
+        grantees["pi_name"] = grantees["pi_names"].str.split(";")
+        grantees = grantees.explode("pi_name").reset_index(drop=True)
+
+        grantees["pi_name"] = (
+            grantees["pi_name"].str.lower().str.replace("(contact)", "").str.strip()
+        )
+        names = grantees["pi_name"].apply(lambda x: x.split(","))
+        grantees["surname"] = names.apply(lambda x: x[0]).str.strip()
+        grantees["forename"] = (
+            names.apply(lambda x: x[1]).str.replace(".", "").str.strip()
+        )
+        grantees["initials"] = grantees["forename"].apply(
+            lambda x: [v[0] for v in x.split(" ") if len(v) > 0]
+        )
+
+        return (df.drop(columns=['pi_name']), 
+                grantees[['surname', 'forename','initals', 'affiliation']]
+        )
+
+    def to_db(self, path:str='data/article_grant_db.sqlite'):
+        """Send the read-in data to the database
+
+        Args: 
+        
+        """
+        # Define the connection
+        engine = sqlalchemy.create_engine('sqlite:///data/article_grant_db.sqlite')
+        connection = engine.connect()
+
+        # always append. deletion should be more thoughtful
+        # NEVER alter raw data.
+        # Pandas has its own index. That is different from the primary key
+        # if you want, you can use the primary key as an index. Dr. Sugden doesn't
+        # It's complicated.
+        self.df[['application_id',
+                'start_at',
+                'grant_type',
+                'total_cost']].to_sql('grants',
+                        connection,
+                        if_exists='append',
+                        index=False)
+
+    def _from_db(self):
+        """Load the data from the database"""
+        engine = sqlalchemy.create_engine("sqlite:///data/article_grant_db.sqlite")
+        connection = engine.connect()
+        df = pd.read_sql("SELECT * FROM grants", connection)
         return df
-    
-    def get(self):
-        """Get parsed grants"""
-        return self.df        
 
+    
+    def get_grants(self):
+        """Get parsed grants"""
+        return self.df
+
+    def get_grantees(self):
+        """Get parsed grantees"""
+        return self.grantee_df.rename(
+            {
+                "LastName": "surname",
+                "ForeName": "forename",
+                "Initials": "initials",
+                "Affiliation": "affiliation",
+            }
+        )   
 
 if __name__ == '__main__':
     # This is for debugging
     grants = Grants('data/RePORTER_PRJ_C_FY2025.zip')
+    grants.to_db()
     
