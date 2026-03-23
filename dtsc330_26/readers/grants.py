@@ -88,8 +88,8 @@ class Grants():  # class names in python are camel case (e.g. GrantReader)
             lambda x: [v[0] for v in x.split(" ") if len(v) > 0]
         )
 
-        return (df.drop(columns=['pi_name']), 
-                grantees[['surname', 'forename','initals', 'affiliation']]
+        return (df.drop(columns=['pi_names']), 
+                grantees[['surname', 'forename','initials', 'affiliation']]
         )
 
     def to_db(self, path:str='data/article_grant_db.sqlite'):
@@ -114,6 +114,8 @@ class Grants():  # class names in python are camel case (e.g. GrantReader)
                         connection,
                         if_exists='append',
                         index=False)
+
+        self.grantee_df[['surname', 'forename', 'affiliation']].to_sql('grantees',connection, if_exists='append',index=False)
 
     def _from_db(self):
         """Load the data from the database"""
