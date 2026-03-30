@@ -27,12 +27,7 @@ class EntityResolutionClassifier:
         self.scaler = None
 
     def train(self, features, labels):
-        if self.model_type == 'logistic_regression':
-            self.model = sklearn.linear_model.LogisticRegression()
-        elif self.model_type == 'random_forest':
-            self.model = sklearn.ensemble.RandomForestClassifier()
-        elif self.model_type == 'xgboost':
-            self.model = xgboost.XGBClassifier()
+        self.model = xgboost.XGBClassifier()
 
         # We NEED to scale the data for regression
         # we can use a StandardScaler to make it normal
